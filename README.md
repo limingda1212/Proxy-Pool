@@ -42,7 +42,7 @@
 **注意:云端代码已经放入本仓库的cloud_deployment文件夹下**
 
 ```
-ProxyPool项目结构
+ProxyPool
 
 ├── <云端 Github Actions> Proxy-Pool-Actions/
 │      ├── actions_main.py
@@ -55,21 +55,55 @@ ProxyPool项目结构
 │                      └── Update-existing-proxies.yml
 │
 └── <本地 Local> ProxyPool/
-       ├── main.py
-       ├── proxies.db
-       ├── api.py
-       ├── README.md
-       ├── interrupt/
-       │      └── <中断恢复存档> 
-       │            interrupted_crawl_proxies.csv
-       │            interrupted_load_proxies.csv
-       │            interrupted_existing_proxies.csv
-       │            interrupted_browser_proxies.csv
-       │            interrupted_safety_proxies.csv
-       └── data/
-             ├── index.html
-             ├── setting.html
-             └── config.json
+        ├── main.py                    # 主入口
+        │
+        ├── core/                      # 核心模块
+        │   ├── __init__.py
+        │   ├── config.py             # 配置读取/保存
+        │   └── menu.py               # 主菜单
+        │
+        ├── collectors/               # 采集层
+        │   ├── __init__.py
+        │   ├── web_crawler.py       # 网页爬虫
+        │   └── file_loader.py       # 文件加载
+        │
+        ├── validators/               # 验证层
+        │   ├── __init__.py
+        │   ├── base_validator.py    # 基础验证
+        │   ├── browser_validator.py # 浏览器验证
+        │   └── security_checker.py  # 安全验证
+        │
+        ├── schedulers/               # 调度层
+        │   ├── __init__.py
+        │   ├── manual_scheduler.py  # 手动调度
+        │   ├── api_server.py        # API服务
+        │   └── pool_monitor.py      # 代理池状态监控
+        │
+        ├── storage/                  # 存储层
+        │   ├── __init__.py
+        │   └── database.py          # 数据库操作
+        │
+        ├── sync/                     # 同步层
+        │   ├── __init__.py
+        │   └── github_sync.py       # GitHub同步
+        │
+        ├── utils/                    # 工具函数
+        │   ├── __init__.py
+        │   ├── helpers.py           # 通用工具
+        │   ├── change_configs.py     # 修改设置
+        │   ├── playwright_check.py    # 检查playwright安装
+        │   ├── signal_manager.py     # 信号处理
+        │   ├── use_api.py            # api使用
+        │   └── interrupt_handler.py # 中断处理
+        │
+        ├── data/                     # 数据文件
+        │   ├── config.json          # 配置文件
+        │   ├── settings.py          # 数据存储
+        │   └── web/                 # 网页文件
+        │       └── index.html
+        │
+        └── interrupt/               # 中断记录目录
+            └── *.csv
 ```
 
 ---
@@ -358,6 +392,7 @@ proxy_usage 使用记录表:
     本版本主代码代理池格式: 代理,分数,代理信息dict
 2025-12-20 : 将程序改为标准代理池,添加了api运行入口,开放多个url用于不同用途的调用.为了防止一个代理在不同爬虫被多次使用,使用了代理状态,未调用时"idle",调用获取会使状态变为"busy",失败会变为"dead"并很快会被清理.
 2025-12-21 : 将代理池迁移到SQLite中,围绕数据库进行了改动
+2026-01-11 : 将一个main文件分成多个模块,分别实现不同功能
 ```
 
 ### (云端 actions_main.py)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 ProxyPool - 高效代理池管理工具
-Copyright (C) 2025  李明达
+Copyright (C) 2026  李明达
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
