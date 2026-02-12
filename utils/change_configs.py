@@ -30,6 +30,13 @@ class ChangeConfig:
                     else:
                         print("[failed] 请输入 true/yes 或 false/no")
                         continue
+                elif input_type is list:
+                    if user_input.startswith("["):
+                        value = eval(user_input)
+
+                    else:
+                        print("[failed] 请输入一个列表[\"v1\",\"v2\",...]")
+                        continue
                 else:
                     value = user_input
 
@@ -47,8 +54,19 @@ class ChangeConfig:
         check_transparent = self.config.get("main.check_transparent", "true")
         get_ip_info = self.config.get("main.get_ip_info", "true")
         high_score_agency_scope = self.config.get("main.high_score_agency_scope", 70)
-        test_url_cn = self.config.get("main.test_url_cn", "https://www.baidu.com")
-        test_url_intl = self.config.get("main.test_url_intl", "https://www.google.com")
+
+        test_url_cn = self.config.get("main.test_url_cn", [
+            "https://connect.rom.miui.com/generate_204",
+            "https://www.qualcomm.cn/generate_204"
+        ])
+
+        test_url_intl = self.config.get("main.test_url_intl",[
+            "https://www.google.com/generate_204",
+            "https://mail.google.com/generate_204",
+            "https://play.google.com/generate_204",
+            "https://accounts.google.com/generate_204"
+        ])
+
         timeout_cn = self.config.get("main.timeout_cn", 5)
         timeout_intl = self.config.get("main.timeout_intl", 10)
         timeout_transparent = self.config.get("main.timeout_transparent", 5)
@@ -110,13 +128,13 @@ class ChangeConfig:
 
             elif edit_choice == "4":
                 # 修改国内测试URL
-                new_url = self.get_input("请输入新的国内测试URL", test_url_cn)
+                new_url = self.get_input("请输入新的国内测试URL列表", test_url_cn, list)
                 self.config.set("main.test_url_cn", new_url)
                 print(f"[success] 国内测试URL已设置为: {new_url}")
 
             elif edit_choice == "5":
                 # 修改国际测试URL
-                new_url = self.get_input("请输入新的国际测试URL", test_url_intl)
+                new_url = self.get_input("请输入新的国际测试URL列表", test_url_intl, list)
                 self.config.set("main.test_url_intl", new_url)
                 print(f"[success] 国际测试URL已设置为: {new_url}")
 
@@ -274,16 +292,22 @@ class ChangeConfig:
     # 编辑GitHub设置
     def edit_github_settings(self):
         """编辑GitHub设置"""
-        # 获取当前配置值
+        # 获取当前token值
         github_token = self.config.get("github.token", "")
-
         if github_token:
             masked_token = github_token[0:15] + ("*" * (len(github_token) - 15)) if len(github_token) > 15 else "***"
         else:
             masked_token = "未设置"
 
+        down_url = self.config.get("github.down_url","https://raw.githubusercontent.com/LiMingda-101212/Proxy-Pool-Actions/refs/heads/main/proxies.csv")
+        github_repo_api = self.config.get("github.actions_repo_api","https://api.github.com/repos/LiMingda-101212/Proxy-Pool-Actions")
+        db_name = self.config.get("github.file_name", "proxies.csv")
+
         print(f"""[info] GitHub同步设置:
-            1: GitHub Token: {masked_token}
+            1: 下载仓库url: {down_url}
+            2: 上传GitHub Token: {masked_token}
+            3: 上传仓库api: {github_repo_api}
+            4: 上传仓库数据文件名: {db_name}
         """)
 
         edit_choice = input("[input] 修改项目序号(回车不修改):")
@@ -293,22 +317,38 @@ class ChangeConfig:
 
         try:
             if edit_choice == "1":
+                new_url = self.get_input("请输入新的代理下载url", down_url)
+                self.config.set("github.down_url", new_url)
+                print(f"[success] 代理下载url已设置为: {new_url}")
+
+            elif edit_choice == "2":
                 current_token = github_token
                 masked_token = "*" * len(current_token) if current_token else "未设置"
                 new_token = input(f"[input] 请输入新的GitHub Token(当前:{masked_token}): ").strip()
                 if new_token:
                     self.config.set("github.token", new_token)
                     print("[success] GitHub Token已更新")
-                    # 保存配置到文件
-                    if self.config.save():
-                        print("[success] GitHub设置已保存到文件")
-                    else:
-                        print("[warning] 配置保存失败")
                 else:
                     print("[info] 未修改GitHub Token")
+
+            elif edit_choice == "3":
+                new_api = self.get_input("请输入新的仓库上传api", github_repo_api)
+                self.config.set("github.actions_repo_api", new_api)
+                print(f"[success] 仓库上传api已设置为: {new_api}")
+
+            elif edit_choice == "4":
+                new_file = self.get_input("请输入新的上传仓库数据文件名", db_name)
+                self.config.set("github.file_name", new_file)
+                print(f"[success] 上传仓库数据文件名已设置为: {new_file}")
             else:
                 print("[info] 无效的选择，返回上级菜单")
                 return False
+
+            # 保存配置到文件
+            if self.config.save():
+                print("[success] GitHub设置已保存到文件")
+            else:
+                print("[warning] 配置保存失败")
 
             return True
 
@@ -399,36 +439,104 @@ class ChangeConfig:
         if confirm in ["y", "yes"]:
             # 定义默认配置
             default_config = {
-                "main": {
-                    "check_transparent": "true",
-                    "get_ip_info": "true",
-                    "high_score_agency_scope": 98,
-                    "test_url_cn": "https://www.baidu.com",
-                    "test_url_intl": "https://www.google.com",
-                    "timeout_cn": 6,
-                    "timeout_intl": 10,
-                    "timeout_transparent": 8,
-                    "timeout_ipinfo": 8,
-                    "max_workers": 100,
-                    "db_file": "../data/proxies.db",
-                    "max_score": 100,
-                    "number_of_items_per_row": 5
+              "main": {
+                "db_file": "./data/proxies.db",
+                "test_url_cn": [
+                  "https://connect.rom.miui.com/generate_204",
+                  "https://www.qualcomm.cn/generate_204"
+                ],
+                "test_url_intl": [
+                  "https://www.google.com/generate_204",
+                  "https://mail.google.com/generate_204",
+                  "https://play.google.com/generate_204",
+                  "https://accounts.google.com/generate_204"
+                ],
+                "test_url_info": "https://ipinfo.io/json",
+                "test_url_transparent": [
+                  "https://httpbin.org/ip",
+                  "https://ipinfo.io/ip"
+                ],
+                "test_urls_safety": {
+                  "html": "https://httpbin.org/html",
+                  "json": "https://httpbin.org/json",
+                  "https": "https://httpbin.org/get",
+                  "headers": "https://httpbin.org/headers",
+                  "delay": "https://httpbin.org/delay/1",
+                  "base64": "https://httpbin.org/base64/SGVsbG8gV29ybGQ=",
+                  "ip_test": "https://httpbin.org/ip"
                 },
-                "interrupt": {
-                    "interrupt_dir": "../interrupt",
-                    "interrupt_file_crawl": "interrupted_crawl_proxies.csv",
-                    "interrupt_file_load": "interrupted_load_proxies.csv",
-                    "interrupt_file_existing": "interrupted_existing_proxies.csv",
-                    "interrupt_file_safety": "interrupted_safety_proxies.csv",
-                    "interrupt_file_browser": "interrupted_browser_proxies.csv"
+                "test_url_browser": "https://httpbin.org/ip",
+                "check_transparent": "True",
+                "get_ip_info": "True",
+                "high_score_agency_scope": 98,
+                "timeout_cn": 6,
+                "timeout_intl": 10,
+                "timeout_transparent": 8,
+                "timeout_ipinfo": 8,
+                "timeout_safety": 10,
+                "timeout_browser": 30,
+                "max_workers": 200,
+                "max_score": 100,
+                "own_ip": "112.234.83.252",
+                "number_of_items_per_row": 5
+              },
+              "interrupt": {
+                "interrupt_dir": "../ProxyPool/interrupt",
+                "interrupt_file_crawl": "interrupted_crawl_proxies.csv",
+                "interrupt_file_load": "interrupted_load_proxies.csv",
+                "interrupt_file_existing": "interrupted_existing_proxies.csv",
+                "interrupt_file_browser": "interrupted_browser_proxies.csv",
+                "interrupt_file_safety": "interrupted_safety_proxies.csv"
+              },
+              "github": {
+                "token": "",
+                "down_url": "https://raw.githubusercontent.com/LiMingda-101212/Proxy-Pool-Actions/refs/heads/main/proxies.csv",
+                "actions_repo_api": "https://api.github.com/repos/LiMingda-101212/Proxy-Pool-Actions",
+                "file_name": "proxies.csv"
+              },
+              "actions": {
+                "output_file": "proxies.csv",
+                "test_url_cn": [
+                  "https://connect.rom.miui.com/generate_204",
+                  "https://www.qualcomm.cn/generate_204"
+                ],
+                "test_url_intl": [
+                  "https://www.google.com/generate_204",
+                  "https://mail.google.com/generate_204",
+                  "https://play.google.com/generate_204",
+                  "https://accounts.google.com/generate_204"
+                ],
+                "test_url_transparent": [
+                  "https://httpbin.org/ip",
+                  "https://ipinfo.io/ip"
+                ],
+                "test_url_info": "https://ipinfo.io/json",
+                "test_urls_safety": {
+                  "html": "https://httpbin.org/html",
+                  "json": "https://httpbin.org/json",
+                  "https": "https://httpbin.org/get",
+                  "headers": "https://httpbin.org/headers",
+                  "delay": "https://httpbin.org/delay/1",
+                  "base64": "https://httpbin.org/base64/SGVsbG8gV29ybGQ=",
+                  "ip_test": "https://httpbin.org/ip"
                 },
-                "github": {
-                    "token": ""
-                },
-                "api": {
-                    "host": "127.0.0.1",
-                    "port": 8000
-                }
+                "test_url_browser": "https://httpbin.org/ip",
+                "check_transparent": "True",
+                "get_ip_info": "True",
+                "high_score_agency_scope": 98,
+                "timeout_cn": 6,
+                "timeout_intl": 10,
+                "timeout_transparent": 8,
+                "timeout_ipinfo": 8,
+                "timeout_safety": 10,
+                "timeout_browser": 30,
+                "max_workers": 100,
+                "max_score": 100
+              },
+              "api": {
+                "host": "0.0.0.0",
+                "port": 8000
+              }
             }
 
             # 应用默认配置

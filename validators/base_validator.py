@@ -203,8 +203,10 @@ class BaseValidator:
                         # 超时，继续下一个协议（如果是自动检测）
                         break
 
-                    # if 200 <= response.status_code < 400:   # 接受200-400,较宽松
-                    if response.status_code == 200:  # 只接受200,严格
+                    # if 200 <= response.status_code < 400:   # 接受200-400,宽松
+                    # if 200 <= response.status_code < 300:   # 接受200-300,较宽松
+                    # if response.status_code in [200, 204]:  # 接受200或204,严格
+                    if response.status_code == 204:  # 使用204站点,只接受204,严格
                         detected_type = current_protocol  # 类型
                         return True, response_time, detected_type
 
@@ -261,15 +263,25 @@ class BaseValidator:
         }
 
         # 验证国内网站
+        url_cn = random.choice(self.config.get("main.test_url_cn", [
+            "https://connect.rom.miui.com/generate_204",
+            "https://www.qualcomm.cn/generate_204"
+        ]))  # 避免总是使用同一个服务
+
         cn_success, cn_response_time, detected_type_cn = self.check_proxy_single(
-            proxy, self.config.get("main.test_url_cn", "https://www.baidu.com"),
-            self.config.get("main.timeout_cn", 6), 1, proxy_type
+            proxy, url_cn,self.config.get("main.timeout_cn", 6), 1, proxy_type
         )
 
         # 验证国际网站
+        url_intl = random.choice(self.config.get("main.test_url_intl",[
+            "https://www.google.com/generate_204",
+            "https://mail.google.com/generate_204",
+            "https://play.google.com/generate_204",
+            "https://accounts.google.com/generate_204"
+        ]))  # 避免总是使用同一个服务
+
         intl_success, intl_response_time, detected_type_intl = self.check_proxy_single(
-            proxy, self.config.get("main.test_url_intl","https://www.google.com"),
-            self.config.get("main.timeout_intl",10), 1, proxy_type
+            proxy, url_intl, self.config.get("main.timeout_intl",10), 1, proxy_type
         )
 
         # 添加new_ip_info的类型

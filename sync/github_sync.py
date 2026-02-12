@@ -19,7 +19,9 @@ class GithubSync:
         """从GitHub下载代理池并合并到本地数据库"""
         print("\n[start] 开始从GitHub下载代理池...")
 
-        github_url = "https://raw.githubusercontent.com/LiMingda-101212/Proxy-Pool-Actions/refs/heads/main/proxies.csv"
+        default_url = "https://raw.githubusercontent.com/LiMingda-101212/Proxy-Pool-Actions/refs/heads/main/proxies.csv"
+        github_url = self.config.get("github.down_url", default_url)
+        # github_url = "https://raw.githubusercontent.com/LiMingda-101212/Proxy-Pool-Actions/refs/heads/main/proxies.csv"
 
         try:
             # 下载GitHub上的代理池
@@ -125,7 +127,8 @@ class GithubSync:
         """检查GitHub Actions运行状态"""
         try:
             # GitHub Actions状态API
-            status_url = "https://api.github.com/repos/LiMingda-101212/Proxy-Pool-Actions/actions/runs"
+            github_repo_api = self.config.get("github.actions_repo_api", "https://api.github.com/repos/LiMingda-101212/Proxy-Pool-Actions")
+            status_url = f"{github_repo_api}/actions/runs"
 
             response = requests.get(status_url, timeout=10)
             if response.status_code == 200:
@@ -180,13 +183,12 @@ class GithubSync:
             return
 
         try:
-            # GitHub API信息
-            repo_owner = "LiMingda-101212"
-            repo_name = "Proxy-Pool-Actions"
-            file_path = "proxies.csv"
+            # GitHub 信息
+            github_repo_api = self.config.get("github.actions_repo_api", "https://api.github.com/repos/LiMingda-101212/Proxy-Pool-Actions")
+            file_name = self.config.get("github.file_name","proxies.csv")
 
             # 首先获取文件当前SHA（如果存在）
-            api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
+            api_url = f"{github_repo_api}/contents/{file_name}"
             headers = {
                 "Authorization": f"token {token}",
                 "Accept": "application/vnd.github.v3+json"
