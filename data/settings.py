@@ -21,13 +21,13 @@ Contact: lmd101212@outlook.com
 """
 
 # 基础信息
-VERSION = "V2026-02-12"
+VERSION = "V2.1.1 | 2026-02-13"
 INFO = f"""
 ******************************************
 本项目采用 GNU General Public License v3.0 (GPL v3) 开源协议。
 完整协议内容请查看 LICENSE 文件。
 
-project: Proxy-Pool
+project: ProxyPool
 version: {VERSION}
 
 written by LiMingda <lmd101212@outlook.com>
