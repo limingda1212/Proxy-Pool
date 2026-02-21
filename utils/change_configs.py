@@ -67,30 +67,54 @@ class ChangeConfig:
             "https://accounts.google.com/generate_204"
         ])
 
+        # 安全测试相关 URL
+        safety_urls = self.config.get("main.test_urls_safety", {})
+        html_url = safety_urls.get("html", "https://httpbin.org/html")
+        json_url = safety_urls.get("json", "https://httpbin.org/json")
+        https_url = safety_urls.get("https", "https://httpbin.org/get")
+        headers_url = safety_urls.get("headers", "https://httpbin.org/headers")
+        delay_url = safety_urls.get("delay", "https://httpbin.org/delay/1")
+        base64_url = safety_urls.get("base64", "https://httpbin.org/base64/SGVsbG8gV29ybGQ=")
+        dns_test_domain = safety_urls.get("dns_test_domain", "example.com")
+        doh_server = safety_urls.get("doh_server", "https://doh.pub/dns-query")
+
         timeout_cn = self.config.get("main.timeout_cn", 5)
         timeout_intl = self.config.get("main.timeout_intl", 10)
         timeout_transparent = self.config.get("main.timeout_transparent", 5)
         timeout_ipinfo = self.config.get("main.timeout_ipinfo", 5)
+        timeout_safety = self.config.get("main.timeout_safety", 10)
         max_workers = self.config.get("main.max_workers", 50)
         db_file = self.config.get("main.db_file", "../data/proxies.db")
         max_score = self.config.get("main.max_score", 100)
         number_of_items_per_row = self.config.get("main.number_of_items_per_row", 5)
 
         print(f"""[info] 当前设置:
-            1:透明代理检查:{"开启" if str(check_transparent).lower() == "true" else "关闭"}
-            2:获取IP信息:{"开启" if str(get_ip_info).lower() == "true" else "关闭"}
-            3:高分代理范围不低于:{high_score_agency_scope}
-            4:国内测试URL:{test_url_cn}
-            5:国际测试URL:{test_url_intl}
-            6:国内测试超时:{timeout_cn}秒
-            7:国际测试超时:{timeout_intl}秒
-            8:透明代理测试超时:{timeout_transparent}秒
-            9:IP信息获取超时:{timeout_ipinfo}秒
-            10:最大并发数:{max_workers}
-            11:输出数据库:{db_file}
-            12:最大分数:{max_score}
-            13:代理池状态每行显示各分数段数量:{number_of_items_per_row}
-        """)
+               1:透明代理检查:{"开启" if str(check_transparent).lower() == "true" else "关闭"}
+               2:获取IP信息:{"开启" if str(get_ip_info).lower() == "true" else "关闭"}
+               3:高分代理范围不低于:{high_score_agency_scope}
+               
+               4:国内测试URL:{test_url_cn}
+               5:国际测试URL:{test_url_intl}
+               6:安全测试HTML URL:{html_url}
+               7:安全测试JSON URL:{json_url}
+               8:安全测试HTTPS URL:{https_url}
+               9:安全测试Headers URL:{headers_url}
+               10:安全测试Delay URL:{delay_url}
+               11:安全测试Base64 URL:{base64_url}
+               12:DNS测试域名:{dns_test_domain}
+               13:DoH服务器:{doh_server}
+               
+               14:国内测试超时:{timeout_cn}秒
+               15:国际测试超时:{timeout_intl}秒
+               16:透明代理测试超时:{timeout_transparent}秒
+               17:IP信息获取超时:{timeout_ipinfo}秒
+               18:安全验证超时:{timeout_safety}秒
+               
+               19:最大并发数:{max_workers}
+               20:输出数据库:{db_file}
+               21:最大分数:{max_score}
+               22:代理池状态每行显示各分数段数量:{number_of_items_per_row}
+           """)
 
         edit_choice = input("[input] 修改项目序号(回车不修改):")
 
@@ -138,58 +162,121 @@ class ChangeConfig:
                 self.config.set("main.test_url_intl", new_url)
                 print(f"[success] 国际测试URL已设置为: {new_url}")
 
+            # 安全URL配置项（6-13）
             elif edit_choice == "6":
+                # 修改安全测试HTML URL
+                new_url = self.get_input("请输入新的安全测试HTML URL", html_url, str)
+                safety_urls["html"] = new_url
+                self.config.set("main.test_urls_safety", safety_urls)
+                print(f"[success] 安全测试HTML URL已设置为: {new_url}")
+
+            elif edit_choice == "7":
+                # 修改安全测试JSON URL
+                new_url = self.get_input("请输入新的安全测试JSON URL", json_url, str)
+                safety_urls["json"] = new_url
+                self.config.set("main.test_urls_safety", safety_urls)
+                print(f"[success] 安全测试JSON URL已设置为: {new_url}")
+
+            elif edit_choice == "8":
+                # 修改安全测试HTTPS URL
+                new_url = self.get_input("请输入新的安全测试HTTPS URL", https_url, str)
+                safety_urls["https"] = new_url
+                self.config.set("main.test_urls_safety", safety_urls)
+                print(f"[success] 安全测试HTTPS URL已设置为: {new_url}")
+
+            elif edit_choice == "9":
+                # 修改安全测试Headers URL
+                new_url = self.get_input("请输入新的安全测试Headers URL", headers_url, str)
+                safety_urls["headers"] = new_url
+                self.config.set("main.test_urls_safety", safety_urls)
+                print(f"[success] 安全测试Headers URL已设置为: {new_url}")
+
+            elif edit_choice == "10":
+                # 修改安全测试Delay URL
+                new_url = self.get_input("请输入新的安全测试Delay URL", delay_url, str)
+                safety_urls["delay"] = new_url
+                self.config.set("main.test_urls_safety", safety_urls)
+                print(f"[success] 安全测试Delay URL已设置为: {new_url}")
+
+            elif edit_choice == "11":
+                # 修改安全测试Base64 URL
+                new_url = self.get_input("请输入新的安全测试Base64 URL", base64_url, str)
+                safety_urls["base64"] = new_url
+                self.config.set("main.test_urls_safety", safety_urls)
+                print(f"[success] 安全测试Base64 URL已设置为: {new_url}")
+
+            elif edit_choice == "12":
+                # 修改DNS测试域名
+                new_domain = self.get_input("请输入新的DNS测试域名", dns_test_domain, str)
+                safety_urls["dns_test_domain"] = new_domain
+                self.config.set("main.test_urls_safety", safety_urls)
+                print(f"[success] DNS测试域名已设置为: {new_domain}")
+
+            elif edit_choice == "13":
+                # 修改DoH服务器
+                new_doh = self.get_input("请输入新的DoH服务器地址", doh_server, str)
+                safety_urls["doh_server"] = new_doh
+                self.config.set("main.test_urls_safety", safety_urls)
+                print(f"[success] DoH服务器已设置为: {new_doh}")
+
+            elif edit_choice == "14":
                 # 修改国内测试超时
                 new_timeout = self.get_input("请输入新的国内测试超时时间(秒)", timeout_cn, int)
                 self.config.set("main.timeout_cn", new_timeout)
                 print(f"[success] 国内测试超时已设置为: {new_timeout}秒")
 
-            elif edit_choice == "7":
+            elif edit_choice == "15":
                 # 修改国际测试超时
                 new_timeout = self.get_input("请输入新的国际测试超时时间(秒)", timeout_intl, int)
                 self.config.set("main.timeout_intl", new_timeout)
                 print(f"[success] 国际测试超时已设置为: {new_timeout}秒")
 
-            elif edit_choice == "8":
+            elif edit_choice == "16":
                 # 修改透明代理测试超时
                 new_timeout = self.get_input("请输入新的透明代理测试超时时间(秒)",
                                              timeout_transparent, int)
                 self.config.set("main.timeout_transparent", new_timeout)
                 print(f"[success] 透明代理测试超时已设置为: {new_timeout}秒")
 
-            elif edit_choice == "9":
+            elif edit_choice == "17":
                 # 修改IP信息获取超时
                 new_timeout = self.get_input("请输入新的IP信息获取超时时间(秒)",
                                              timeout_ipinfo, int)
                 self.config.set("main.timeout_ipinfo", new_timeout)
                 print(f"[success] IP信息获取超时已设置为: {new_timeout}秒")
 
-            elif edit_choice == "10":
+            elif edit_choice == "18":
+                # 修改安全验证超时
+                new_timeout = self.get_input("请输入新的安全验证超时时间(秒)",
+                                             timeout_safety, int)
+                self.config.set("main.timeout_safety", new_timeout)
+                print(f"[success] 安全验证超时已设置为: {new_timeout}秒")
+
+            elif edit_choice == "19":
                 # 修改最大并发数
                 new_workers = self.get_input("请输入新的最大并发数", max_workers, int)
                 self.config.set("main.max_workers", new_workers)
                 print(f"[success] 最大并发数已设置为: {new_workers}")
 
-            elif edit_choice == "11":
+            elif edit_choice == "20":
                 # 修改输出数据库路径
                 new_path = self.get_input("请输入新的输出数据库(SQLite)路径", db_file)
                 self.config.set("main.db_file", new_path)
                 print(f"[success] 输出路径已设置为: {new_path}")
 
-            elif edit_choice == "12":
+            elif edit_choice == "21":
                 # 修改最大分数
                 new_score = self.get_input("请输入新的最大分数", max_score, int)
                 self.config.set("main.max_score", new_score)
                 print(f"[success] 最大分数已设置为: {new_score}")
 
-            elif edit_choice == "13":
+            elif edit_choice == "22":
                 # 修改每行显示项目数
                 def validate_items_per_row(value):
                     if 1 <= value <= 20:
                         return True
                     print("[failed] 请输入1-20之间的数字")
                     return False
-
                 new_items = self.get_input("请输入每行显示的项目数",
                                            number_of_items_per_row,
                                            int, validate_items_per_row)
@@ -463,7 +550,8 @@ class ChangeConfig:
                   "headers": "https://httpbin.org/headers",
                   "delay": "https://httpbin.org/delay/1",
                   "base64": "https://httpbin.org/base64/SGVsbG8gV29ybGQ=",
-                  "ip_test": "https://httpbin.org/ip"
+                  "dns_test_domain": "example.com",
+                  "doh_server": "https://doh.pub/dns-query"
                 },
                 "test_url_browser": "https://httpbin.org/ip",
                 "check_transparent": "True",
@@ -475,9 +563,9 @@ class ChangeConfig:
                 "timeout_ipinfo": 8,
                 "timeout_safety": 10,
                 "timeout_browser": 30,
-                "max_workers": 200,
+                "max_workers": 300,
                 "max_score": 100,
-                "own_ip": "112.234.83.252",
+                "own_ip": "27.197.43.148",
                 "number_of_items_per_row": 5
               },
               "interrupt": {
@@ -518,7 +606,8 @@ class ChangeConfig:
                   "headers": "https://httpbin.org/headers",
                   "delay": "https://httpbin.org/delay/1",
                   "base64": "https://httpbin.org/base64/SGVsbG8gV29ybGQ=",
-                  "ip_test": "https://httpbin.org/ip"
+                  "dns_test_domain": "example.com",
+                  "doh_server": "https://doh.pub/dns-query"
                 },
                 "test_url_browser": "https://httpbin.org/ip",
                 "check_transparent": "True",

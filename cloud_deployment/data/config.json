@@ -23,7 +23,8 @@
       "headers": "https://httpbin.org/headers",
       "delay": "https://httpbin.org/delay/1",
       "base64": "https://httpbin.org/base64/SGVsbG8gV29ybGQ=",
-      "ip_test": "https://httpbin.org/ip"
+      "dns_test_domain": "example.com",
+      "doh_server": "https://doh.pub/dns-query"
     },
     "test_url_browser": "https://httpbin.org/ip",
     "check_transparent": "True",
@@ -37,7 +38,7 @@
     "timeout_browser": 30,
     "max_workers": 300,
     "max_score": 100,
-    "own_ip": "27.197.43.148",
+    "own_ip": "112.234.83.252",
     "number_of_items_per_row": 5
   },
   "interrupt": {
@@ -78,7 +79,8 @@
       "headers": "https://httpbin.org/headers",
       "delay": "https://httpbin.org/delay/1",
       "base64": "https://httpbin.org/base64/SGVsbG8gV29ybGQ=",
-      "ip_test": "https://httpbin.org/ip"
+      "dns_test_domain": "example.com",
+      "doh_server": "https://doh.pub/dns-query"
     },
     "test_url_browser": "https://httpbin.org/ip",
     "check_transparent": "True",

@@ -92,6 +92,8 @@ class GithubSync:
                             "dns_hijacking": "unknown",
                             "ssl_valid": "unknown",
                             "malicious_content": "unknown",
+                            "data_integrity": "unknown",
+                            "behavior_analysis": "unknown",
                             "check_date": "unknown"
                         }
 

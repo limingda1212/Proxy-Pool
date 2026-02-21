@@ -78,6 +78,15 @@ class PoolMonitor:
             else:
                 browser_unknown_count += 1
 
+        # 计算安全验证各项通过数量
+        security_keys = ["dns_hijacking", "ssl_valid", "malicious_content", "data_integrity", "behavior_analysis"]
+        security_passed = {key: 0 for key in security_keys}
+        for info in proxy_info.values():
+            sec = info.get("security", {})
+            for key in security_keys:
+                if sec.get(key) == "pass":
+                    security_passed[key] += 1
+
         # 计算各列的最大宽度
         # 支持范围统计列
         support_items = [
@@ -121,6 +130,16 @@ class PoolMonitor:
             browser_line = browser_items[i].ljust(30)
             transparent_line = transparent_items[i]
             print(f"{support_line}{browser_line}{transparent_line}")
+
+        # 打印安全验证统计
+        print("\n安全验证统计:")
+        print("  DNS劫持通过: {} | SSL有效: {} | 恶意内容通过: {} | 数据完整性通过: {} | 行为分析通过: {}".format(
+            security_passed["dns_hijacking"],
+            security_passed["ssl_valid"],
+            security_passed["malicious_content"],
+            security_passed["data_integrity"],
+            security_passed["behavior_analysis"]
+        ))
 
         # 按类型显示分数分布
         for proxy_type, proxy_list in type_groups.items():

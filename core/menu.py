@@ -50,8 +50,9 @@ class MainMenu:
 [choice] 功能:
     1: 加载并验证新代理 (成功后添加到代理池)
     2: 检验并更新已有代理 (更新代理池代理分数)
-    3: 浏览器使用验证 (检测出浏览器可用代理)
-    4: 代理安全验证 (检验代理安全性) - 开发中
+    3: 浏览器可用验证 (检测出浏览器可用代理)
+    4: 代理安全性验证 (检验代理安全性)
+    
     5: 筛选并提取代理
     6: 查看代理池状态
     7: 同步代理池 (与GitHub Actions同步)
@@ -71,6 +72,7 @@ class MainMenu:
             "1": self.validate_new_proxies_menu,
             "2": self.validate_existing_proxies_menu,
             "3": self.browser_validation_menu,
+            "4": self.security_validation_menu,
             "5": self.extract_proxies_menu,
             "6": self.show_proxy_pool_status_menu,
             "7": self.synchronous_proxy_pool_menu,
@@ -314,6 +316,120 @@ class MainMenu:
             print("[INFO] 筛选并验证代理")
             custom_layered_validation()
 
+    # 安全验证菜单
+    def security_validation_menu(self):
+        """安全验证菜单"""
+        # 首先检查是否有中断记录
+        interrupt_file = str(os.path.join(
+            self.config.get("interrupt.interrupt_dir", "interrupt"),
+            self.config.get("interrupt.interrupt_file_safety", "interrupted_safety_proxies.csv")
+        ))
+
+        from_interrupt, remaining_proxies, type_or_config, original_count = self.interrupt.check_interrupted_records(
+            interrupt_file
+        )
+        if (from_interrupt == False) and (remaining_proxies == "return"):
+            return
+        elif from_interrupt and remaining_proxies:
+            # 从中断恢复，type_or_config 是 JSON 字符串
+            try:
+                config = json.loads(type_or_config)
+                # 需要从 validators.security_checker 导入 SecurityValidator
+                from validators.security_checker import SecurityValidator
+                validator = SecurityValidator(self.config)
+                validator.layered_security_validation(
+                    config=config,
+                    from_interrupt=True,
+                    proxies_to_validate=remaining_proxies
+                )
+            except Exception as e:
+                print(f"[error] 中断恢复失败: {e}")
+        else:
+            # 自定义安全验证条件
+            def custom_security_validation():
+                """自定义安全验证条件"""
+                try:
+                    min_score = int(input("[input] 最低分数 (默认80): ") or "80")
+                    max_proxies = int(input("[input] 最大验证数量 (默认50): ") or "50")
+                    max_concurrent = int(input("[input] 并发数 (默认100): ") or "100")
+
+                    # 类型筛选
+                    print("\n[choice] 选择代理类型:")
+                    print("1: HTTP/HTTPS")
+                    print("2: SOCKS5")
+                    print("3: SOCKS4")
+                    print("4: 全部类型")
+                    type_choice = input("[input] 请选择 (1-4): ").strip()
+                    type_map = {
+                        "1": ["http"],
+                        "2": ["socks5"],
+                        "3": ["socks4"],
+                        "4": ["http", "socks4", "socks5"]
+                    }
+                    proxy_types = type_map.get(type_choice, ["http"])
+
+                    # 支持范围筛选
+                    print("\n[choice] 选择支持范围:")
+                    print("1: 仅支持国内")
+                    print("2: 仅支持国际")
+                    print("3: 支持国内外")
+                    print("4: 不限制")
+                    support_choice = input("[input] 请选择 (1-4): ").strip()
+                    china = None
+                    intl = None
+                    if support_choice == "1":
+                        china, intl = True, False
+                    elif support_choice == "2":
+                        china, intl = False, True
+                    elif support_choice == "3":
+                        china, intl = True, True
+
+                    # 透明代理
+                    print("\n[choice] 选择透明代理:")
+                    print("1: 仅验证透明代理")
+                    print("2: 仅验证非透明代理")
+                    print("3: 不限制")
+                    trans_choice = input("[input] 请选择 (1-3): ").strip()
+                    trans_only = None
+                    if trans_choice == "1":
+                        trans_only = True
+                    elif trans_choice == "2":
+                        trans_only = False
+
+                    # 浏览器状态（可选）
+                    print("\n[choice] 选择浏览器验证状态:")
+                    print("1: 仅验证浏览器失败的代理")
+                    print("2: 仅验证浏览器成功的代理")
+                    print("3: 仅验证未进行浏览器验证的代理")
+                    print("4: 不限制")
+                    browser_status_choice = input("[input] 请选择 (1-4): ").strip()
+                    browser_status = None
+                    if browser_status_choice == "1":
+                        browser_status = "failed"
+                    elif browser_status_choice == "2":
+                        browser_status = "success"
+                    elif browser_status_choice == "3":
+                        browser_status = "unknown"
+
+                    config = {
+                        "min_score": min_score,
+                        "max_proxies": max_proxies,
+                        "max_concurrent": max_concurrent,
+                        "proxy_types": proxy_types,
+                        "china_support": china,
+                        "international_support": intl,
+                        "transparent_only": trans_only,
+                        "browser_status": browser_status
+                    }
+
+                    from validators.security_checker import SecurityValidator
+                    validator = SecurityValidator(self.config)
+                    validator.layered_security_validation(config)
+                except ValueError:
+                    print("[error] 输入无效")
+
+            # 新验证，让用户输入筛选条件（类似 browser_validator 中的自定义分层验证）
+            custom_security_validation()
 
     # 提取代理菜单
     def extract_proxies_menu(self):
@@ -391,8 +507,27 @@ class MainMenu:
                 browser_only = False
             # 3 和其他情况不限制
 
-            proxies = self.manual_scheduler.extract_proxies_by_type(count, proxy_type, china_support, international_support, transparent_only,
-                                              browser_only)
+            # 安全通过数量要求
+            print("\n[choice] 选择安全验证项目通过数量要求 (0-5，留空不限制):")
+            security_req = input("[input] 至少要求通过数量: ").strip()
+            if security_req == "":
+                min_security = None
+            else:
+                try:
+                    min_security = int(security_req)
+                    if not 0 <= min_security <= 5:
+                        print("[failed] 请输入0-5之间的数字")
+                        return
+                except ValueError:
+                    print("[error] 输入无效")
+                    return
+
+            # 调用提取方法
+            proxies = self.manual_scheduler.extract_proxies_by_type(
+                count, proxy_type, china_support, international_support,
+                transparent_only, browser_only, min_security_passed=min_security
+            )
+
             if not proxies:
                 print("[warning] 代理池中没有符合条件的代理")
                 return
@@ -409,8 +544,10 @@ class MainMenu:
                     support_desc.append("国际")
                 support_str = "|".join(support_desc) if support_desc else "无"
                 transparent_str = "[warning]透明" if proxy_info["transparent"] else "匿名"
+                security_str = f" | 安全:{proxy_info['security_passed']}/5"
                 print(
-                    f"{i}. {proxy_info['proxy']} | 分数:{proxy_info['score']} | 支持:{support_str} | {transparent_str}")
+                    f"{i}. {proxy_info['proxy']} | 分数:{proxy_info['score']} | 支持:{support_str} | {transparent_str}{security_str}"
+                )
 
             save_choice = input("[input] 是否保存到文件? (y/n): ").lower().strip()
             if save_choice == "y":

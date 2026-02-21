@@ -21,7 +21,7 @@ Contact: lmd101212@outlook.com
 """
 
 # 基础信息
-VERSION = "V2.1.1 | 2026-02-13"
+VERSION = "V2.2.0 | 2026-02-21"
 INFO = f"""
 ******************************************
 本项目采用 GNU General Public License v3.0 (GPL v3) 开源协议。

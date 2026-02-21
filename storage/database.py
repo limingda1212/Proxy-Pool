@@ -11,6 +11,90 @@ class DatabaseManager:
     def __init__(self, db_path: str):
         self.db_path = db_path
 
+
+    # def load_proxies_from_db(self) -> Tuple[Dict[str, int], Dict[str, Any]]:
+    #     """
+    #     从SQLite数据库加载代理
+    #     :return: 代理分数字典, 代理信息字典
+    #     """
+    #     proxies = {}
+    #     proxy_info = {}
+    #
+    #     if not os.path.exists(self.db_path):
+    #         return proxies, proxy_info
+    #
+    #     conn = None
+    #
+    #     try:
+    #         conn = sqlite3.connect(self.db_path)
+    #         cursor = conn.cursor()
+    #
+    #         cursor.execute('''
+    #         SELECT
+    #             proxy, score, types, support_china, support_international,
+    #             transparent, detected_ip, city, region, country, loc, org,
+    #             postal, timezone, browser_valid, browser_check_date,
+    #             browser_response_time, dns_hijacking, ssl_valid,
+    #             malicious_content, data_integrity, behavior_analysis,
+    #             security_check_date, avg_response_time,
+    #             success_rate, last_checked
+    #         FROM proxies
+    #         ''')
+    #
+    #         for row in cursor.fetchall():
+    #             proxy = row[0]
+    #             score = row[1]
+    #             types_json = row[2]
+    #
+    #             # 构造代理信息字典,方便使用
+    #             info = {
+    #                 "types": json.loads(types_json) if types_json else [],
+    #                 "support": {
+    #                     "china": bool(row[3]),
+    #                     "international": bool(row[4])
+    #                 },
+    #                 "transparent": bool(row[5]),
+    #                 "detected_ip": row[6],
+    #                 "location": {
+    #                     "city": row[7],
+    #                     "region": row[8],
+    #                     "country": row[9],
+    #                     "loc": row[10],
+    #                     "org": row[11],
+    #                     "postal": row[12],
+    #                     "timezone": row[13]
+    #                 },
+    #                 "browser": {
+    #                     "valid": bool(row[14]),
+    #                     "check_date": row[15],
+    #                     "response_time": row[16]
+    #                 },
+    #                 "security": {
+    #                     "dns_hijacking": row[17],
+    #                     "ssl_valid": row[18],
+    #                     "malicious_content": row[19],
+    #                     "data_integrity" : row[20],
+    #                     "behavior_analysis" : row[21],
+    #                     "check_date" : row[22]
+    #                 },
+    #                 "performance": {
+    #                     "avg_response_time": row[23],
+    #                     "success_rate": row[24],
+    #                     "last_checked": row[25]
+    #                 }
+    #             }
+    #
+    #             proxies[proxy] = score
+    #             proxy_info[proxy] = info
+    #
+    #     except Exception as e:
+    #         print(f"[error] 从数据库加载代理失败: {e}")
+    #     finally:
+    #         if conn:
+    #             conn.close()
+    #
+    #     return proxies, proxy_info
+    # --- 更新: 字段通过列名获取 优势：无需维护索引顺序，代码更清晰，即使以后新增字段也只需在字典中添加，不会影响现有逻辑 ---
     def load_proxies_from_db(self) -> Tuple[Dict[str, int], Dict[str, Any]]:
         """
         从SQLite数据库加载代理
@@ -23,60 +107,54 @@ class DatabaseManager:
             return proxies, proxy_info
 
         conn = None
-
         try:
             conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row  # 启用行工厂
             cursor = conn.cursor()
 
-            cursor.execute('''
-            SELECT 
-                proxy, score, types, support_china, support_international,
-                transparent, detected_ip, city, region, country, loc, org,
-                postal, timezone, browser_valid, browser_check_date,
-                browser_response_time, dns_hijacking, ssl_valid,
-                malicious_content, security_check_date, avg_response_time,
-                success_rate, last_checked
-            FROM proxies
-            ''')
+            # 使用 SELECT *
+            cursor.execute('SELECT * FROM proxies')
 
             for row in cursor.fetchall():
-                proxy = row[0]
-                score = row[1]
-                types_json = row[2]
+                proxy = row['proxy']
+                score = row['score']
+                types_json = row['types']
 
-                # 构造代理信息字典,方便使用
+                # 构造 info 字典，所有字段通过列名获取
                 info = {
                     "types": json.loads(types_json) if types_json else [],
                     "support": {
-                        "china": bool(row[3]),
-                        "international": bool(row[4])
+                        "china": bool(row['support_china']),
+                        "international": bool(row['support_international'])
                     },
-                    "transparent": bool(row[5]),
-                    "detected_ip": row[6],
+                    "transparent": bool(row['transparent']),
+                    "detected_ip": row['detected_ip'],
                     "location": {
-                        "city": row[7],
-                        "region": row[8],
-                        "country": row[9],
-                        "loc": row[10],
-                        "org": row[11],
-                        "postal": row[12],
-                        "timezone": row[13]
+                        "city": row['city'],
+                        "region": row['region'],
+                        "country": row['country'],
+                        "loc": row['loc'],
+                        "org": row['org'],
+                        "postal": row['postal'],
+                        "timezone": row['timezone']
                     },
                     "browser": {
-                        "valid": bool(row[14]),
-                        "check_date": row[15],
-                        "response_time": row[16]
+                        "valid": bool(row['browser_valid']),
+                        "check_date": row['browser_check_date'],
+                        "response_time": row['browser_response_time']
                     },
                     "security": {
-                        "dns_hijacking": row[17],
-                        "ssl_valid": row[18],
-                        "malicious_content": row[19],
-                        "check_date": row[20]
+                        "dns_hijacking": row['dns_hijacking'],
+                        "ssl_valid": row['ssl_valid'],
+                        "malicious_content": row['malicious_content'],
+                        "data_integrity": row['data_integrity'],
+                        "behavior_analysis": row['behavior_analysis'],
+                        "check_date": row['security_check_date']
                     },
                     "performance": {
-                        "avg_response_time": row[21],
-                        "success_rate": row[22],
-                        "last_checked": row[23]
+                        "avg_response_time": row['avg_response_time'],
+                        "success_rate": row['success_rate'],
+                        "last_checked": row['last_checked']
                     }
                 }
 
@@ -96,7 +174,6 @@ class DatabaseManager:
         保存代理到SQLite数据库
         :param proxies: 代理分数字典 {proxy: score}
         :param proxy_info: 代理信息字典 {proxy: info_dict}
-        :param db_path: 数据库路径
         """
         if not proxies:
             return
@@ -127,6 +204,14 @@ class DatabaseManager:
                 security = info.get("security", {})
                 performance = info.get("performance", {})
 
+                # 从 security 字典中提取字段（如果不存在则用默认值）
+                dns_hijacking = security.get("dns_hijacking", "unknown")
+                ssl_valid = security.get("ssl_valid", "unknown")
+                malicious_content = security.get("malicious_content", "unknown")
+                data_integrity = security.get("data_integrity", "unknown")
+                behavior_analysis = security.get("behavior_analysis", "unknown")
+                security_check_date = security.get("check_date", "unknown")
+
                 # 检查代理是否已存在
                 cursor.execute("SELECT 1 FROM proxies WHERE proxy = ?", (proxy,))
                 exists = cursor.fetchone()
@@ -139,8 +224,8 @@ class DatabaseManager:
                             transparent = ?, detected_ip = ?, city = ?, region = ?, country = ?,
                             loc = ?, org = ?, postal = ?, timezone = ?, browser_valid = ?,
                             browser_check_date = ?, browser_response_time = ?, dns_hijacking = ?,
-                            ssl_valid = ?, malicious_content = ?, security_check_date = ?,
-                            avg_response_time = ?, success_rate = ?, last_checked = ?,
+                            ssl_valid = ?, malicious_content = ?, data_integrity = ?, behavior_analysis = ?,
+                            security_check_date = ?, avg_response_time = ?, success_rate = ?, last_checked = ?,
                             updated_at = CURRENT_TIMESTAMP
                         WHERE proxy = ?
                         ''', (
@@ -158,10 +243,12 @@ class DatabaseManager:
                         1 if browser.get("valid") else 0,
                         browser.get("check_date", "unknown"),
                         browser.get("response_time", -1),
-                        security.get("dns_hijacking", "unknown"),
-                        security.get("ssl_valid", "unknown"),
-                        security.get("malicious_content", "unknown"),
-                        security.get("check_date", "unknown"),
+                        dns_hijacking,
+                        ssl_valid,
+                        malicious_content,
+                        data_integrity,
+                        behavior_analysis,
+                        security_check_date,
                         performance.get("avg_response_time", 0),
                         performance.get("success_rate", 0.0),
                         performance.get("last_checked", date.today().isoformat()),
@@ -176,9 +263,10 @@ class DatabaseManager:
                             transparent, detected_ip, city, region, country, loc, org,
                             postal, timezone, browser_valid, browser_check_date,
                             browser_response_time, dns_hijacking, ssl_valid,
-                            malicious_content, security_check_date, avg_response_time,
+                            malicious_content, data_integrity, behavior_analysis,
+                            security_check_date, avg_response_time,
                             success_rate, last_checked
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ''', (
                         proxy, score, types_json,
                         1 if support.get("china") else 0,
@@ -194,10 +282,12 @@ class DatabaseManager:
                         1 if browser.get("valid") else 0,
                         browser.get("check_date", "unknown"),
                         browser.get("response_time", -1),
-                        security.get("dns_hijacking", "unknown"),
-                        security.get("ssl_valid", "unknown"),
-                        security.get("malicious_content", "unknown"),
-                        security.get("check_date", "unknown"),
+                        dns_hijacking,
+                        ssl_valid,
+                        malicious_content,
+                        data_integrity,
+                        behavior_analysis,
+                        security_check_date,
                         performance.get("avg_response_time", 0),
                         performance.get("success_rate", 0.0),
                         performance.get("last_checked", date.today().isoformat())
@@ -220,7 +310,6 @@ class DatabaseManager:
         """
         清理数据库中分数为0的代理
 
-        :param db_path: 数据库文件路径
         :return: 清理的代理数量
         """
         if not os.path.exists(self.db_path):

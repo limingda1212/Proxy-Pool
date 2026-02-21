@@ -23,9 +23,9 @@ def check_playwright_browsers():
         print(result.stdout.lower())
 
         if "chromium" in result.stdout.lower():
-            return True, "Playwright 浏览器已安装"
+            return True, "Playwright 浏览器chromium已安装"
         else:
-            return False, "Playwright 浏览器未安装\n请运行: playwright install chromium"
+            return False, "Playwright 浏览器chromium未安装\n请运行: playwright install chromium"
     except Exception as e:
         return False, f"检查浏览器时出错: {e}"
 
