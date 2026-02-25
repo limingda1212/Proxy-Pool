@@ -2,6 +2,10 @@
 
 ---
 
+[English translation version | README in English (click here)](./README_EN.md)
+
+---
+
 `代理池管理项目`
 
 一个功能全面的代理池管理系统，支持代理采集、验证、管理、安全检测和自动维护。
