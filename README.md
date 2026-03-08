@@ -32,7 +32,7 @@
 
 #### 🔧 技术特性
 - **多协议支持**：HTTP/HTTPS/SOCKS4/SOCKS5
-- **异步验证**：高性能异步验证，支持并发
+- **异步验证**：多进程异步验证，支持并发
 - **SQLite存储**：轻量级数据库，完整代理信息记录
 - **Web API**：提供RESTful API接口
 - **跨平台**：支持Windows/macOS/Linux

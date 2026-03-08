@@ -61,8 +61,6 @@ class MainMenu:
     
     setting: 设置
     help: 帮助
-    show w: 保修信息
-    show c: 再分发条件
     输入其他: 退出
         """)
 
@@ -79,9 +77,7 @@ class MainMenu:
             "8": self.api_integration_menu,
             "9": self.cleanup_zero_score_menu,
             "setting": self.setting_menu,
-            "help": self.help_menu,
-            "show w":self.show_warranty,
-            "show c":self.show_conditions
+            "help": self.help_menu
         }
 
         handler = handlers.get(choice)
@@ -672,6 +668,9 @@ class MainMenu:
     1: 查看介绍
     2: 快速开始
     
+    show w: 保修信息
+    show c: 再分发条件
+    
     其他: 返回
         """)
 
@@ -733,6 +732,12 @@ class MainMenu:
                 self.synchronous_proxy_pool_menu()
             print("你已经学会使用本代理池了")
             print("🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉")
+
+        elif choice == "show w":
+            self.show_warranty()
+
+        elif choice == "show c":
+            self.show_conditions()
 
         else:
             return
