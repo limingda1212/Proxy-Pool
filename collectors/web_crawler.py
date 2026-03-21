@@ -99,16 +99,16 @@ class WebCrawler:
         """爬取免费代理"""
 
         print("""[info] 已创建的可爬网站
-        1 ：https://proxy5.net/cn/free-proxy/china
-              备注:被封了,成功率 40%
-        2 ：https://www.89ip.cn/
+        1 ：https://www.89ip.cn/
               备注:240个,成功率 10%
-        3 ：https://cn.freevpnnode.com/
+        2 ：https://cn.freevpnnode.com/
               备注:30个,成功率 3%
-        4 ：https://www.kuaidaili.com/free/inha/ 
+        3 ：https://www.kuaidaili.com/free/inha/ 
               备注:7600多页,成功率 5%
-        5 ：http://www.ip3366.net/
+        4 ：http://www.ip3366.net/
               备注:100个,成功率 1%
+        5 ：https://proxy5.net/cn/free-proxy/china
+              备注:被封了,成功率 40%
         6 ：https://proxypool.scrape.center/random
               备注:随机的,成功率 40%
         7 ：https://proxy.scdn.io/text.php
@@ -143,26 +143,9 @@ class WebCrawler:
         all_proxies = []  # 存储所有爬取的代理
         by_type = 'auto'  # 通过指定类型验证,默认为auto
 
+        
+
         if scraper_choice == "1":
-            print('\n[info] 爬取:https://proxy5.net/cn/free-proxy/china')
-            print('[start]')
-
-            error_count = 0
-            '''
-            <tr>.*?<td><strong>(?P<ip>.*?)</strong></td>.*?<td>(?P<port>.*?)</td>.*?</tr>
-            '''
-            proxy_list = self.scrape_html_proxies('https://proxy5.net/cn/free-proxy/china',
-                                             "<tr>.*?<td><strong>(?P<ip>.*?)</strong></td>.*?<td>(?P<port>.*?)</td>.*?</tr>",
-                                             ["ip", "port"])
-
-            if proxy_list:
-                all_proxies.extend(proxy_list)
-            else:
-                error_count += 1
-            print(f'100%|██████████████████████████████████████████████████| 1/1  错误数:{error_count}')
-            print('\n[end] 爬取完成!')
-
-        elif scraper_choice == "2":
             print('\n[info] 爬取:https://www.89ip.cn/')
             print('[start]')
 
@@ -203,7 +186,7 @@ class WebCrawler:
                 sys.stdout.flush()
             print('\n\n[end] 爬取完成!')
 
-        elif scraper_choice == "3":
+        elif scraper_choice == "2":
             print('\n[info] 爬取:https://cn.freevpnnode.com/')
             error_count = 0
             print('[start]')
@@ -217,7 +200,7 @@ class WebCrawler:
             print(f'100%|██████████████████████████████████████████████████| 1/1  错误数:{error_count}')
             print('\n[end] 爬取完成!')
 
-        elif scraper_choice == "4":
+        elif scraper_choice == "3":
             print('[info] 爬取:https://www.kuaidaili.com/free/inha/')
             error_count = 0
             try:
@@ -266,7 +249,7 @@ class WebCrawler:
                 print("[error] 输入错误，请输入整数")
                 return None, None
 
-        elif scraper_choice == "5":
+        elif scraper_choice == "4":
             print('\n[info] 爬取:http://www.ip3366.net/?stype=1')
             print('[start]')
 
@@ -302,6 +285,24 @@ class WebCrawler:
                 sys.stdout.flush()
             print('\n\n[end] 爬取完成!')
 
+        elif scraper_choice == "5":
+                    print('\n[info] 爬取:https://proxy5.net/cn/free-proxy/china')
+                    print('[start]')
+
+                    error_count = 0
+                    '''
+                    <tr>.*?<td><strong>(?P<ip>.*?)</strong></td>.*?<td>(?P<port>.*?)</td>.*?</tr>
+                    '''
+                    proxy_list = self.scrape_html_proxies('https://proxy5.net/cn/free-proxy/china',
+                                                    "<tr>.*?<td><strong>(?P<ip>.*?)</strong></td>.*?<td>(?P<port>.*?)</td>.*?</tr>",
+                                                    ["ip", "port"])
+
+                    if proxy_list:
+                        all_proxies.extend(proxy_list)
+                    else:
+                        error_count += 1
+                    print(f'100%|██████████████████████████████████████████████████| 1/1  错误数:{error_count}')
+                    print('\n[end] 爬取完成!')
 
         elif scraper_choice == "6":
             print('\n[info] 爬取:https://proxypool.scrape.center/random')
@@ -349,6 +350,8 @@ class WebCrawler:
             except ValueError:
                 print("[error] 输入错误")
                 return None, None
+            
+        
 
         elif scraper_choice == '7':
             print("\n[info] 爬取:https://proxy.scdn.io/text.php")

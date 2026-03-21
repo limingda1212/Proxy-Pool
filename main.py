@@ -66,6 +66,8 @@ def main():
     except KeyboardInterrupt:
         # 这里也会被信号处理器捕获，但作为备份
         print("\n通过KeyboardInterrupt退出")
+    except:
+        print("检测到错误")
     finally:
         print("程序结束")
 
